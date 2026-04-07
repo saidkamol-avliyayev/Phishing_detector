@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t.page_title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+    <div class="page-bg"></div>
+
+    <div class="container">
+        <header class="hero">
+            <div class="hero-top">
+                <div class="brand-badge">🛡️ Cyber Security</div>
+
+                <div class="lang-switch">
+                    <a href="/?lang=uz" class="lang-btn {% if lang == 'uz' %}active{% endif %}">
+                        <img src="{{ url_for('static', filename='flags/uz.png') }}" alt="uz">
+                        <span>O‘zbek</span>
+                    </a>
+
+                    <a href="/?lang=en" class="lang-btn {% if lang == 'en' %}active{% endif %}">
+                        <img src="{{ url_for('static', filename='flags/gb-eng.png') }}" alt="en">
+                        <span>English</span>
+                    </a>
+                </div>
+            </div>
+
+            <h1>{{ t.title }}</h1>
+            <p>{{ t.subtitle }}</p>
+        </header>
+
+        <section class="glass-card input-card">
+            <form method="POST" class="analyze-form">
+                <input type="hidden" name="lang" value="{{ lang }}">
+
+                <input
+                    type="text"
+                    name="url"
+                    placeholder="{{ t.placeholder }}"
+                    required
+                    class="url-input"
+                >
+                <button
+                    type="submit"
+                    class="analyze-btn"
+                    data-loading-text="{% if lang == 'uz' %}Tahlil qilinmoqda...{% else %}Analyzing...{% endif %}"
+                >
+                    {{ t.button }}
+                </button>
+            </form>
+            <p class="helper-text">{{ t.helper }}</p>
+        </section>
+
+        {% if result %}
+        <section class="results-grid">
+            <div class="card info-card full-width fade-in">
+                <div class="card-header">
+                    <span class="card-icon">🔎</span>
+                    <h2>{{ t.url_info }}</h2>
+                </div>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="label">{{ t.entered_url }}</span>
+                        <span class="value">{{ result.url }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">{{ t.domain }}</span>
+                        <span class="value">{{ result.domain }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card {% if result.structure_analysis.risks %}danger-card{% else %}safe-card{% endif %} fade-in" style="animation-delay: 0.4s">
+                <div class="card-header">
+                    <span class="card-icon">{% if result.structure_analysis.risks %}⚠️{% else %}✅{% endif %}</span>
+                    <h2>{{ t.structural }}</h2>
+                </div>
+
+                {% if result.structure_analysis.risks %}
+                    <ul class="risk-list">
+                        {% for risk in result.structure_analysis.risks %}
+                            <li>{{ risk }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="safe-message">{{ t.no_structural }}</p>
+                {% endif %}
+            </div>
+
+            <div class="card {% if result.database_analysis.matched %}danger-card{% else %}safe-card{% endif %} fade-in" style="animation-delay: 0.6s">
+                <div class="card-header">
+                    <span class="card-icon">{% if result.database_analysis.matched %}🚨{% else %}✅{% endif %}</span>
+                    <h2>{{ t.database }}</h2>
+                </div>
+
+                {% if result.database_analysis.risks %}
+                    <ul class="risk-list">
+                        {% for risk in result.database_analysis.risks %}
+                            <li>{{ risk }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="safe-message">{{ t.not_in_db }}</p>
+                {% endif %}
+            </div>
+
+            <div class="card {% if result.all_detected_risks %}danger-card{% else %}safe-card{% endif %} full-width fade-in" style="animation-delay: 0.8s">
+                <div class="card-header">
+                    <span class="card-icon">{% if result.all_detected_risks %}📋{% else %}✅{% endif %}</span>
+                    <h2>{{ t.all_risks }}</h2>
+                </div>
+
+                {% if result.all_detected_risks %}
+                    <ul class="risk-list">
+                        {% for risk in result.all_detected_risks %}
+                            <li>{{ risk }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="safe-message">{{ t.no_risks }}</p>
+                {% endif %}
+            </div>
+
+            {% if result.error %}
+            <div class="card danger-card full-width">
+                <div class="card-header">
+                    <span class="card-icon">❌</span>
+                    <h2>{{ t.error }}</h2>
+                </div>
+                <p>{{ result.error }}</p>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <section class="recent-section">
+            <div class="section-title">
+                <span>🕘</span>
+                <h2>{{ t.recent_checks }}</h2>
+            </div>
+
+            <div class="recent-grid">
+                {% if recent_checks %}
+                    {% for item in recent_checks %}
+                    <div class="recent-item {% if item.has_risks %}recent-danger{% else %}recent-safe{% endif %}">
+                        <div class="recent-url">{{ item.url }}</div>
+                        <div class="recent-domain">{{ item.domain }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="recent-empty">No recent checks yet.</div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-box">
+            <div class="overlay-spinner"></div>
+            <p id="loading-text">
+                {% if lang == 'uz' %}
+                    Tahlil qilinmoqda...
+                {% else %}
+                    Analyzing...
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
